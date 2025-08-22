@@ -41,9 +41,6 @@ pip install -r requirements.txt
 3. Run the App
 python app.py
 
-4. Access
-
-Go to http://127.0.0.1:5000/ in your browser.
 
 📂 Project Structure
 SmileWell/
