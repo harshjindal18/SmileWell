@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Smile Detector</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f2f5;
+            text-align: center;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        form {
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            width: 400px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        input[type="file"] {
+            margin: 10px 0;
+        }
+
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .output-container {
+            margin-top: 30px;
+        }
+
+        .image-display {
+            max-width: 500px;
+            margin: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .score {
+            font-size: 18px;
+            margin: 10px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Smile Detection App 😊</h1>
+
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" name="image" accept="image/*" required>
+        <br>
+        <button type="submit">Upload & Detect Smile</button>
+    </form>
+
+    <div class="output-container" id="output">
+        <div id="scoreContainer"></div>
+        <img id="uploadedImage" class="image-display" style="display:none;" />
+        <img id="processedImage" class="image-display" style="display:none;" />
+    </div>
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        const uploadedImage = document.getElementById('uploadedImage');
+        const processedImage = document.getElementById('processedImage');
+        const scoreContainer = document.getElementById('scoreContainer');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            const fileInput = form.querySelector('input[name="image"]');
+            const file = fileInput.files[0];
+
+            // Show original image
+            const reader = new FileReader();
+            reader.onload = function () {
+                uploadedImage.src = reader.result;
+                uploadedImage.style.display = 'inline';
+            }
+            reader.readAsDataURL(file);
+
+            const response = await fetch('/detect_smile', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const smileScores = response.headers.get("smile_scores") || "[]";
+
+                processedImage.src = URL.createObjectURL(blob);
+                processedImage.style.display = 'inline';
+
+                // Parse smile score and show it
+                const scores = JSON.parse(smileScores);
+                scoreContainer.innerHTML = scores.map((s, i) => 
+                    `<div class="score">Face ${i+1}: 😊 Smile Score = <strong>${s}%</strong></div>`
+                ).join("");
+            } else {
+                alert("Smile detection failed.");
+            }
+        });
+    </script>
+
+</body>
+</html>
